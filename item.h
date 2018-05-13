@@ -1,3 +1,8 @@
+// ==============================
+// item.h
+// 与项类定义
+// ==============================
+
 #ifndef QUINE_MCCLUSKEY_ITEM_H
 #define QUINE_MCCLUSKEY_ITEM_H
 
