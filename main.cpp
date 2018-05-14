@@ -20,15 +20,15 @@ int main(void)
     vector<Item> items, result;
     vector<vector<Item> > tableA, tableB; 
     int temp;
-    cout << "请输入变量个数：" << endl;
+    cout << "Please input the number of variables:" << endl;
     cin >> quantity;
-    cout << "请输入最小项，-1结束输入：" << endl;
+    cout << "Please input the minimum item，input -1 to end：" << endl;
     cin >> temp;
     while (temp != -1)
     {
         if (temp < 0)
         {
-            cout << "请检查输入！" << endl;
+            cout << "Please check your input！" << endl;
             return 0;
         }
         Item item(temp, quantity);
@@ -71,7 +71,7 @@ void CreatItemTable(vector<Item> &items,
         table.push_back(*temp);
     }
     for (auto x : items)
-        table[x.numOfOne()].push_back(x);
+        table[x.numOfPositiveVariables()].push_back(x);
     return ;
 }
 
@@ -94,9 +94,9 @@ bool Step(vector<vector<Item> > &tableA,
             for (int k = 0; k < tableA[i + 1].size(); k++)
             {
                 Item result;
-                if (Item::combain(tableA[i][j], tableA[i + 1][k], result))
+                if (Item::combine(tableA[i][j], tableA[i + 1][k], result))
                 {
-                    tableB[result.numOfOne()].push_back(result);
+                    tableB[result.numOfPositiveVariables()].push_back(result);
                     tableA[i][j].set_isUsed(true);
                     tableA[i + 1][k].set_isUsed(true);
                 }
@@ -131,7 +131,7 @@ void Select(vector<Item> &items, vector<Item> &result)
     for (int i = 0; i < rowNum; i++)
         flags.push_back(temp);
     for (int i = 1; i < coloumNum; i++)
-        flags[0][i] = items[i - 1].get_itemContain()[0];
+        flags[0][i] = items[i - 1].get_minItemContain()[0];
     for (int i = 1; i < rowNum; i++)
         flags[i][0] = i - 1;
     for (int i = 1; i < rowNum; i++)

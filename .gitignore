@@ -32,5 +32,7 @@
 *.app
 Quine-McCluskey
 
-*.json
+launch.json
+settings.json
+tasks.json
 Makefile

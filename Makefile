@@ -1,7 +1,7 @@
 #变量声明
 objects = main.o \
-		  item.o \
-		  function.o
+	  item.o \
+	  function.o
 #######################################
 Quine-McCluskey.exe : $(objects)
 	g++ -g -o Quine-McCluskey.exe $(objects)
