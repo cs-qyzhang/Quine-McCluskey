@@ -20,14 +20,22 @@ int main(void)
         select = ShowMenu();
         switch (select)
         {
+        case -1:
+            break;
         case 0:
             return 0;
             break;
         case 1:
             break;
+        case 2:
+            break;
         default:
+            cout << "错误的输入！请检查输入！" << endl;
             break;
         }
+        cout << "按任意键继续：";
+        cin.get();
+        cin.get();
     }
 }
 
@@ -39,5 +47,21 @@ int main(void)
 // ----------------------------------------
 int ShowMenu()
 {
-    //TODO:
+    int select;
+
+    cout << "-----------------------------" << endl;
+    cout << " 0.退出程序" << endl;
+    cout << " 1.输入" << endl;
+    cout << " 2.Solve the simplest expression of minimum items" << endl;
+    cout << "-----------------------------" << endl;
+    cout << "Please input a number to continue:";
+    cin  >> select;
+    if (cin.fail())
+    {
+        cin.clear();
+        cin.get();
+        cout << "Wrong input! Please check the format of input!" << endl;
+        return -1;
+    }
+    return select;
 }
