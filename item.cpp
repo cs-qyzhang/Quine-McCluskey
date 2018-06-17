@@ -4,6 +4,10 @@
 // ==============================
 
 #include <algorithm>
+#include <list>
+#include <iostream>
+#include <cmath>
+#include <stack>
 #include "item.h"
 
 // ------------------------------
@@ -14,7 +18,7 @@
 // 函数说明：无
 // ------------------------------
 Item::Item() :
-    isUsed(false), variableQuantity(0)
+    isUsed(false)
 {
 
 }
@@ -26,10 +30,9 @@ Item::Item() :
 // 函数说明：无
 // ------------------------------
 Item::Item(const std::vector<std::string> &variablePara) :
-    isUsed(false), variable(variablePara),
-    variableQuantity(variablePara.size())
+    isUsed(false), variable(variablePara)
 {
-
+    std::sort(variable.begin(), variable.end());
 }
 // ------------------------------
 // 函数名称：Item
@@ -41,10 +44,9 @@ Item::Item(const std::vector<std::string> &variablePara) :
 // ------------------------------
 Item::Item(const std::vector<std::string> &variablePara,
            const std::vector<int> &para) :
-    isUsed(false), variableQuantity(variablePara.size),
-    variable(variablePara), minItem(para)
+    isUsed(false), variable(variablePara), minItem(para)
 {
-
+    std::sort(variable.begin(), variable.end());
 }
 // ------------------------------
 // 函数名称：operator=
@@ -55,7 +57,6 @@ Item::Item(const std::vector<std::string> &variablePara,
 // ------------------------------
 Item & Item::operator=(const Item &para)
 {
-    variableQuantity = para.variableQuantity;
     isUsed = para.isUsed;
     minItem = para.minItem;
     variable = para.variable;
@@ -70,8 +71,6 @@ Item & Item::operator=(const Item &para)
 // ------------------------------
 bool Item::operator==(const Item &a) const
 {
-    if (variableQuantity != a.variableQuantity)
-        return false;
     if (variable != variable)
         return false;
     if (minItem.size() != a.minItem.size())
@@ -95,14 +94,9 @@ bool Item::operator==(const Item &a) const
 // ------------------------------
 void Item::clear()
 {
-    variableQuantity = 0;
     variable.clear();
     minItem.clear();
     isUsed = false;
-}
-int Item::get_variableQuantity() const
-{
-    return variableQuantity;
 }
 bool Item::get_isUsed() const
 {
@@ -129,10 +123,6 @@ bool Item::isMinItemContained(int para) const
     else
         return true;
 }
-void Item::set_variableQuantity(int para)
-{
-    variableQuantity = para;
-}
 void Item::set_isUsed(bool para)
 {
     isUsed = para;
@@ -144,6 +134,7 @@ void Item::set_minItem(const std::vector<int> &para)
 void Item::set_variable(const std::vector<std::string> &para)
 {
     variable = para;
+    std::sort(variable.begin(), variable.end());
 }
 void Item::push_back_minItem(int para)
 {
@@ -161,9 +152,10 @@ void Item::removeMinItem(int para)
         return;
     minItem.erase(p);
 }
-Item & Item::operator+(const Item &para)
+Item Item::operator+(const Item &para)
 {
-    std::vector<int> result;
+    Item result;
+    result.variable = variable;
     std::vector<int> a = minItem;
     std::vector<int> b = para.minItem;
 
@@ -175,39 +167,44 @@ Item & Item::operator+(const Item &para)
     for (pa = a.begin(); pa != a.end(); pa++)
     {
         if (pb == b.end())
-            result.push_back(*pa);
+            result.minItem.push_back(*pa);
         else if (*pa < *pb)
-            result.push_back(*pa);
+            result.minItem.push_back(*pa);
         else if (*pa == *pb)
         {
-            result.push_back(*pa);          //假设a中没有重复元素，b中没有重复元素
+            result.minItem.push_back(*pa);          //假设a中没有重复元素，b中没有重复元素
             *pb++;
         }
         else
         {
-            while (pb != b.end() && *pb > *pa)
+            while (pb != b.end() && *pb < *pa)
             {
-                result.push_back(*pb);
+                result.minItem.push_back(*pb);
                 pb++;
             }
-            result.push_back(*pa);
+            if (*pb == *pa)
+            {
+                result.minItem.push_back(*pb);
+                pb++;
+            }
+            else
+                result.minItem.push_back(*pa);
         }
     }
     while (pb != b.end())
     {
-        result.push_back(*pb);
+        result.minItem.push_back(*pb);
         pb++;
     }
-    minItem = result;
-    return *this;
+    return result;
 }
-Item & Item::operator*(const Item &para)
+Item Item::operator*(const Item &para)
 {
-    std::vector<int> result;
+    Item result;
+    result.variable = variable;
     std::vector<int> a = minItem;
     std::vector<int> b = para.minItem;
 
-    result.clear();
     std::sort(a.begin(), a.end());
     std::sort(b.begin(), b.end());
 
@@ -226,14 +223,36 @@ Item & Item::operator*(const Item &para)
             
         	if(*pb==*pa)
         	{
-        		result.push_back(*pb);
+        		result.minItem.push_back(*pb);
         		pb++;
 			}
 		}
     }
 
-    minItem = result;
-    return *this;
+    return result;
+}
+Item Item::operator!()
+{
+    Item result;
+    result.variable = variable;
+    std::vector<int> complement;
+    std::vector<int>::iterator p;
+
+    p = minItem.begin();
+    for (int i = 0; i < exp2(variable.size()); i++)
+    {
+        if (p == minItem.end())
+            complement.push_back(i);
+        else if (i < *p)
+            complement.push_back(i);
+        else if (i == *p)
+            p++;
+        else
+            ;
+    }
+    result.minItem = complement;
+
+    return result;
 }
 int Item::numOfPositiveVariables() const
 {
@@ -243,10 +262,299 @@ int Item::numOfNegativeVariables() const
 {
     //TODO:
 }
+// ------------------------------
+// 函数名称：isOperator
+// 函数功能：判断表达式中字符是否为运算符
+// 函数参数：char
+// 函数返回：bool， true代表该字符为运算符，否则返回false
+// 函数说明：无
+// ------------------------------
+bool Item::isOperator(char para)
+{
+    if (para == '@' ||
+        para == '^' ||
+        para == '*' ||
+        para == '+' ||
+        para == '!' ||
+        para == '(' ||
+        para == ')')
+        return true;
+    else
+        return false;
+}
+// ------------------------------
+// 函数名称：isVariable
+// 函数功能：判断表达式中字符是否为变量
+// 函数参数：char
+// 函数返回：bool， true代表该字符为变量，否则返回false
+// 函数说明：无
+// ------------------------------
+bool Item::isVariable(char para)
+{
+    if (para >='a' && para <= 'z')
+        return true;
+    else if (para >= 'A' && para <= 'Z')
+        return true;
+    else if (para >= '0' && para <= '9')
+        return true;
+    else if (para == '_')
+        return true;
+    else
+        return false;
+}
+// ------------------------------
+// 函数名称：vaPosToString
+// 函数功能：将int型的变量名所在vector中的下标转换为二位十进制编码并用字符串表示
+// 函数参数：int
+// 函数返回：std::string，转换后的编码
+// 函数说明：无
+// ------------------------------
+std::string Item::vaPosToString(int para)
+{
+    std::string result;
+    if (para < 10)
+    {
+        result.push_back('0');
+        result.push_back('0' + para);
+    }
+    else
+    {
+        result.push_back('0' + para / 10);
+        result.push_back('0' + para % 10);
+    }
+    return result;
+}
+// ------------------------------
+// 函数名称：itemPosToString
+// 函数功能：将int型的与项所在vector中的下标转换为三位十进制编码并用字符串表示
+// 函数参数：int
+// 函数返回：std::string，转换后的编码
+// 函数说明：无
+// ------------------------------
+std::string Item::itemPosToString(int para)
+{
+    std::string result;
+    if (para < 10)
+    {
+        result.push_back('0');
+        result.push_back('0');
+        result.push_back('0' + para);
+    }
+    else if (para >= 10 && para <= 99)
+    {
+        result.push_back('0');
+        result.push_back('0' + para / 10);
+        result.push_back('0' + para % 10);
+    }
+    else
+    {
+        result.push_back('0' + para / 100);
+        result.push_back('0' + (para / 10) % 10);
+        result.push_back('0' + para % 10);
+    }
+    return result;
+}
+// ------------------------------
+// 函数名称：variableEcoding
+// 函数功能：将一个与项中的变量转变为相应的二位十进制编码，并用string表示
+// 函数参数：std::string，变量名组成的与项
+// 函数返回：std::string，转换后的编码
+// 函数说明：无
+// ------------------------------
+std::string Item::variableEcoding(std::string para)
+{
+    std::string::iterator p1, p2, lastPos;
+    p1 = para.begin();
+    p2 = p1;
+    
+    while (p1 != para.end())
+    {
+        lastPos = p1;
+        std::string temp;
+        std::vector<std::string>::iterator pos;
+
+        while (p2 != para.end())
+        {
+            p2++;
+
+            temp = para.substr(p1 - para.begin(), p2 - p1);
+            pos = std::find(variable.begin(), variable.end(), temp);
+            if (pos != variable.end())
+                lastPos = p2;
+
+        }
+
+        temp = para.substr(p1 - para.begin(), lastPos - p1);
+        pos = std::find(variable.begin(), variable.end(), temp);
+        para.replace(p1, lastPos, vaPosToString(pos - variable.begin()));
+        p1 += 2;
+        p2 = p1;
+    }
+
+    return para;
+}
+// ------------------------------
+// 函数名称：listToInt
+// 函数功能：将用链表表示的每个变量的包含情况转换为相应的最小项
+// 函数参数：const std::list<int> &flag，用链表表示的每个变量的包含情况
+// 函数返回：int，转换后的最小项
+// 函数说明：无
+// ------------------------------
+int Item::listToInt(const std::list<int> &flag)
+{
+    int result = 0;
+
+    std::list<int>::const_iterator p;
+    p = flag.begin();
+    for (int i = 0; i < flag.size(); i++)
+    {
+        result = result << 1;
+        result += *p;
+        p++;
+    }
+
+    return result;
+}
+// ------------------------------
+// 函数名称：stringToMinItems
+// 函数功能：将用string表示的与项转换为相应的最小项集合
+// 函数参数：std::string，变量名组成的与项
+// 函数返回：std::vector<int>，转换后的最小项集合
+// 函数说明：无
+// ------------------------------
+std::vector<int> Item::stringToMinItems(std::string para)
+{
+    std::vector<int> result;
+    std::vector<int> vaContained;
+
+    //建立vaContained
+    std::string::iterator p1;
+    p1 = para.begin();
+    while (p1 != para.end())
+    {
+        std::string temp;
+        temp = para.substr(p1 - para.begin(), 2);
+        vaContained.push_back(std::stoi(temp));
+        p1 += 2; 
+    }
+    std::sort(vaContained.begin(), vaContained.end());
+
+    int leftVaNum;
+    leftVaNum = variable.size() - vaContained.size();
+
+    std::list<int> min;
+    for (int i = 0; i < exp2(leftVaNum); i++)
+    {
+        int num;
+        num = i;
+
+        for (int j = 0; j < leftVaNum; j++)
+        {
+            min.push_front(num % 2);
+            num /= 2;
+        }
+
+        for (int j = 0; j < vaContained.size(); j++)
+        {
+            std::list<int>::iterator p;
+            p = min.begin();
+            std::advance(p, vaContained[j]);
+            min.insert(p, 1);
+        }
+
+        result.push_back(listToInt(min));
+        min.clear();
+    }
+    return result;
+}
+// ------------------------------
+// 函数名称：operatorPriority
+// 函数功能：得到运算符的优先级
+// 函数参数：char，运算符
+// 函数返回：int，运算符优先级
+// 函数说明：无
+// ------------------------------
+int Item::operatorPriority(char para)
+{
+    if (para == '!')
+        return 3;
+    else if (para == '*')
+        return 2;
+    else if (para == '^' || para == '@')
+        return 1;
+    else if (para == '+')
+        return 0;
+    else
+        return -1;
+}
+// ------------------------------
+// 函数名称：InfixToSuffix
+// 函数功能：中缀表达式转后缀表达式
+// 函数参数：std::string，中缀表达式
+// 函数返回：std::string，后缀表达式
+// 函数说明：无
+// ------------------------------
+std::string Item::InfixToSuffix(std::string para)
+{
+    std::stack<char> operatorStack;
+    std::string result;
+
+    std::string::iterator p;
+    p = para.begin();
+    while (p != para.end())
+    {
+        if (isOperator(*p))
+        {
+            if (operatorStack.empty())
+                operatorStack.push(*p);
+            else if (*p == '(')
+                operatorStack.push(*p);
+            else if (*p == ')')
+            {
+                while (operatorStack.top() != '(')
+                {
+                    result.push_back(operatorStack.top());
+                    operatorStack.pop();
+                }
+                operatorStack.pop();
+            }
+            else
+            {
+                while (!operatorStack.empty() &&
+                       operatorPriority(operatorStack.top()) >=
+                       operatorPriority(*p))
+                {
+                    result.push_back(operatorStack.top());
+                    operatorStack.pop();
+                }
+                operatorStack.push(*p);
+            }
+        }
+        else
+            result.push_back(*p);
+        
+        p++;
+    }
+    while (!operatorStack.empty())
+    {
+        result.push_back(operatorStack.top());
+        operatorStack.pop();
+    }
+    return result;
+}
+// ------------------------------
+// 函数名称：expr
+// 函数功能：将一个逻辑表达式字符串转换为一个Item
+// 函数参数：const std::string&，逻辑表达式
+//          const std::vector<std::string>&，变量名vector
+// 函数返回：int，处理结果，包括表达式是否合法，转换是否产生错误。若成功转换则返回0
+// 函数说明：无
+// ------------------------------
 int Item::expr(const std::string &exprPara, const std::vector<std::string> &variablePara)
 {
     variable = variablePara;
-    variableQuantity = variable.size();
+    std::sort(variable.begin(), variable.end());
+
     isUsed = false;
     minItem.clear();
 
@@ -264,22 +572,177 @@ int Item::expr(const std::string &exprPara, const std::vector<std::string> &vari
         return legalState;
 
     //第二步：将表达式中的变量名替换为相应的二位十进制编码，以变量在变量名集合中的下标进行编码。
+    std::string expressions = (std::string)exprPara;
+    std::string::iterator p1, p2;
 
+    //清除空格
+    while (true)
+    {
+        p1 = std::find(expressions.begin(), expressions.end(), ' ');
+        if (p1 != expressions.end())
+            expressions.erase(p1);
+        else
+            break;
+    }
+
+    p1 = expressions.begin();
+    p2 = expressions.begin();
+    const int BEGIN = 0, VARIABLES = 1, OPERATORS = 2;
+    int state = BEGIN;
+
+    while (p1 != expressions.end())
+    {
+        switch (state)
+        {
+        case BEGIN:
+            if (isOperator(*p1))
+                state = OPERATORS;
+            else if (isVariable(*p1))
+                state = VARIABLES;
+            else
+                return -1;
+            break;
+        case VARIABLES:
+            p2++;
+            if (p2 == expressions.end() || !isVariable(*p2))
+            {
+                if (p2 == expressions.end())
+                    ;
+                else if (isOperator(*p2))
+                    state = OPERATORS;
+                else
+                    return -1;
+                std::string temp;
+                temp = variableEcoding(expressions.substr(p1 - expressions.begin(), p2 - p1));
+                expressions.replace(p1, p2, temp);
+                p1 += temp.size();
+                p2 = p1;
+            }
+            break;
+        case OPERATORS:
+            p1++;
+            p2++;
+            if (isVariable(*p1))
+                state = VARIABLES;
+            else if (isOperator(*p1))
+                ;
+            else
+                return -1;
+            break;
+        default:
+            return -1;
+        }
+    }
 
 
 
     //第三步：将表达式中的与项转换成Item并存放在vector中，并按照该项在vector中的下标进行编码，编码为三位十进制。
+    std::vector<Item> itemTable;
 
+    int index = 0;
+    p1 = expressions.begin();
+    p2 = p1;
+    Item *items;
+    bool end;
+    end = false;
+    while (!end)
+    {
+        while(isOperator(*p1))
+            p1++;
+        if (p1 == expressions.end())
+            break;
 
+        p2 = p1;
+        p2++;
+
+        while (p2 != expressions.end() && !isOperator(*p2))
+            p2++;
+        
+        if (p2 == expressions.end())
+            end = true;
+
+        std::string temp;
+        temp = expressions.substr(p1 - expressions.begin(), p2 - p1);
+
+        items = new Item(variable);
+        items->set_minItem(stringToMinItems(temp));
+        itemTable.push_back(*items);
+
+        temp = itemPosToString(index++);
+        expressions.replace(p1, p2, temp);
+
+        p1 += 3;
+    }
 
 
     //第四步：将第三步得到的中缀表达式转换为后缀表达式。
     //       运算符优先级：
     //       非(!) > 与(*) > 异或(^) = 同或(@) > 或(+)
-
+    expressions = InfixToSuffix(expressions);
 
 
     //第五步：计算并合并各个与项，最后将所有的与项合并为一个与项。
+    std::stack<Item> itemStack;
+    p1 = expressions.begin();
+    Item temp1, temp2;
+    while (p1 != expressions.end())
+    {
+        if (isOperator(*p1))
+        {
+            switch(*p1)
+            {
+            case '!':
+                temp1 = itemStack.top();
+                itemStack.pop();
+                temp1 = !temp1;
+                itemStack.push(temp1);
+                break;
+            case '*':
+                temp1 = itemStack.top();
+                itemStack.pop();
+                temp2 = itemStack.top();
+                itemStack.pop();
+                temp1 = temp1 * temp2;
+                itemStack.push(temp1);
+                break;
+            case '^':
+                temp1 = itemStack.top();
+                itemStack.pop();
+                temp2 = itemStack.top();
+                itemStack.pop();
+                temp1 = (temp1 * (!temp2)) + ((!temp1) * temp2);
+                itemStack.push(temp1);
+                break;
+            case '@':
+                temp1 = itemStack.top();
+                itemStack.pop();
+                temp2 = itemStack.top();
+                itemStack.pop();
+                temp1 = (temp1 * temp2) + ((!temp1) * (!temp2));
+                itemStack.push(temp1);
+                break;
+            case '+':
+                temp1 = itemStack.top();
+                itemStack.pop();
+                temp2 = itemStack.top();
+                itemStack.pop();
+                temp1 = temp1 + temp2;
+                itemStack.push(temp1);
+                break;
+            }
+            p1++;
+        }
+        else
+        {
+            std::string temp;
+            temp = expressions.substr(p1 - expressions.begin(), 3);
+            itemStack.push(itemTable[std::stoi(temp)]);
+            p1 += 3;
+        }
+    }
+    temp1 = itemStack.top();
+    minItem = temp1.minItem;
+    return 0;
 }
 // ------------------------------
 // 函数名称：legalExpr

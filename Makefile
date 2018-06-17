@@ -1,10 +1,10 @@
 #变量声明
 objects = main.o \
-	  item.o \
-	  function.o
+	  	  item.o \
+	  	  function.o
 #######################################
 Quine-McCluskey.exe : $(objects)
-	g++ -g -o Quine-McCluskey.exe $(objects)
+	g++ -g -o Quine-McCluskey $(objects)
 
 main.o : main.cpp item.h
 	g++ -g -c main.cpp
@@ -17,4 +17,4 @@ function.o : function.cpp
 ########################################
 .PHONY : clean
 clean  :
-	rm Quine-McCluskey.exe $(objects)
+	rm Quine-McCluskey $(objects)

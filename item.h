@@ -8,6 +8,7 @@
 
 #include <vector>
 #include <string>
+#include <list>
 
 // ------------------------------
 // 类名：Item
@@ -16,7 +17,6 @@
 class Item
 {
 private:
-    int variableQuantity;                           //变量个数
     std::vector<std::string> variable;              //变量名称
     bool isUsed;                                    //在列表化简法里判断该项是否用过
     std::vector<int> minItem;                       //该项包含的最小项
@@ -24,9 +24,16 @@ private:
     int numOfPositiveVariables() const;             //计算并返回项中含有的原变量个数
     int numOfNegativeVariables() const;             //计算并返回项中含有的反变量个数
 
-    int getPriority(char);                          //得到运算符的优先级
+    int operatorPriority(char);                          //得到运算符的优先级
     std::string InfixToSuffix(std::string);         //将前缀表达式字符串变为后缀表达式字符串
     int legalExpr(const std::string &);             //判断表达式是否合法
+    bool isOperator(char);                          //判断字符是否属于运算符
+    bool isVariable(char);                          //判断字符是否属于变量
+    std::string variableEcoding(std::string);       //将变量变为以变量名所在vector下标的二位十进制编码字符串
+    std::string vaPosToString(int);                 //将变量名在vector的下标转换为二位十进制对应的字符串
+    std::string itemPosToString(int);               //将与项在vector的下标转换为三位十进制对应的字符串
+    std::vector<int> stringToMinItems(std::string); //将与项对应字符串转换为该与项对应的最小项
+    int listToInt(const std::list<int> &flag);      //将用链表表示的每个变量的包含情况转换为相应的最小项
 
 public:
     explicit Item();                                //默认构造函数，将isUsed,variableQuantity设置为0
@@ -37,19 +44,17 @@ public:
     ~Item() = default;                              //默认析构函数
     Item & operator=(const Item &);                 //赋值运算符
     bool operator==(const Item &) const;            //等于运算符
-    Item & operator+(const Item &);                 //或运算
-    Item & operator*(const Item &);                 //与运算
-    Item & operator^(const Item &);                 //异或运算
+    Item operator+(const Item &);                 //或运算
+    Item operator*(const Item &);                 //与运算
+    Item operator!();
     void clear();                                   //清空项
 
-    int get_variableQuantity() const;               //返回variableQuantity的值
     bool get_isUsed() const;                        //返回isUsed的值
     std::vector<int> & get_minItem() const;         //返回minItemContain的一个拷贝
     std::vector<std::string> & get_variable() const;//返回变量名称
 
     bool isMinItemContained(int minItem) const;     //返回项中是否包含有minItem这一最小项
 
-    void set_variableQuantity(int);                 //设置variableQuantity成员
     void set_isUsed(bool);                          //设置isUsed成员
     void set_minItem(const std::vector<int> &);     //设置minItemContain成员
     void set_variable(const 
@@ -64,5 +69,11 @@ public:
 
     
 };
+
+typedef struct VaNode
+{
+    std::string name;
+    int pos; 
+}*VaNodePtr;
 
 #endif //QUINE_MCCLUSKEY_ITEM_H

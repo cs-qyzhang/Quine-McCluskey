@@ -9,11 +9,14 @@
 using namespace std;
 
 int ShowMenu(void);
+void test(void);
 
 int main(void)
 {
     int select;
     vector<char> variables;
+
+    test();
 
     while (true)
     {
@@ -64,4 +67,16 @@ int ShowMenu()
         return -1;
     }
     return select;
+}
+
+void test(void)
+{
+    Item a;
+    vector<string> variable;
+    variable.push_back("A");
+    variable.push_back("B");
+    variable.push_back("CD");
+    variable.push_back("EF");
+    string result;
+    result = a.expr("AB+!CD+A^EF", variable);
 }
