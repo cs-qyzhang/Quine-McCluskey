@@ -32,7 +32,6 @@ Item::Item() :
 Item::Item(const std::vector<std::string> &variablePara) :
     isUsed(false), variable(variablePara)
 {
-    std::sort(variable.begin(), variable.end());
 }
 // ------------------------------
 // 函数名称：Item
@@ -46,7 +45,6 @@ Item::Item(const std::vector<std::string> &variablePara,
            const std::vector<int> &para) :
     isUsed(false), variable(variablePara), minItem(para)
 {
-    std::sort(variable.begin(), variable.end());
 }
 // ------------------------------
 // 函数名称：operator=
@@ -102,7 +100,7 @@ bool Item::get_isUsed() const
 {
     return isUsed;
 }
-std::vector<int> & Item::get_minItem() const
+std::vector<int> Item::get_minItem() const
 {
     std::vector<int> result;
     result = minItem;
@@ -134,7 +132,6 @@ void Item::set_minItem(const std::vector<int> &para)
 void Item::set_variable(const std::vector<std::string> &para)
 {
     variable = para;
-    std::sort(variable.begin(), variable.end());
 }
 void Item::push_back_minItem(int para)
 {
@@ -173,7 +170,7 @@ Item Item::operator+(const Item &para)
         else if (*pa == *pb)
         {
             result.minItem.push_back(*pa);          //假设a中没有重复元素，b中没有重复元素
-            *pb++;
+            pb++;
         }
         else
         {
@@ -182,7 +179,9 @@ Item Item::operator+(const Item &para)
                 result.minItem.push_back(*pb);
                 pb++;
             }
-            if (*pb == *pa)
+            if (pb == b.end())
+                result.minItem.push_back(*pa);
+            else if (*pb == *pa)
             {
                 result.minItem.push_back(*pb);
                 pb++;
@@ -363,30 +362,29 @@ std::string Item::itemPosToString(int para)
 // ------------------------------
 std::string Item::variableEcoding(std::string para)
 {
-    std::string::iterator p1, p2, lastPos;
-    p1 = para.begin();
-    p2 = p1;
-    
-    while (p1 != para.end())
+    int p1, p2, lastPos;
+    p1 = p2 = 0;
+
+    while (p1 != para.size())
     {
         lastPos = p1;
         std::string temp;
         std::vector<std::string>::iterator pos;
 
-        while (p2 != para.end())
+        while (p2 != para.size())
         {
             p2++;
 
-            temp = para.substr(p1 - para.begin(), p2 - p1);
+            temp = para.substr(p1, p2 - p1);
             pos = std::find(variable.begin(), variable.end(), temp);
             if (pos != variable.end())
                 lastPos = p2;
 
         }
 
-        temp = para.substr(p1 - para.begin(), lastPos - p1);
+        temp = para.substr(p1, lastPos - p1);
         pos = std::find(variable.begin(), variable.end(), temp);
-        para.replace(p1, lastPos, vaPosToString(pos - variable.begin()));
+        para.replace(p1, lastPos - p1, vaPosToString(pos - variable.begin()));
         p1 += 2;
         p2 = p1;
     }
@@ -416,6 +414,20 @@ int Item::listToInt(const std::list<int> &flag)
     return result;
 }
 // ------------------------------
+// 函数名称：VaContainComp
+// 函数功能：比较两个VaContain
+// 函数参数：VaContain a, VaContain b
+// 函数返回：bool，当a的变量位置小于b时返回true，否则返回false
+// 函数说明：无
+// ------------------------------
+bool VaContainComp(VaContain a, VaContain b)
+{
+    if (a.vaPos < b.vaPos)
+        return true;
+    else
+        return false;
+}
+// ------------------------------
 // 函数名称：stringToMinItems
 // 函数功能：将用string表示的与项转换为相应的最小项集合
 // 函数参数：std::string，变量名组成的与项
@@ -425,19 +437,49 @@ int Item::listToInt(const std::list<int> &flag)
 std::vector<int> Item::stringToMinItems(std::string para)
 {
     std::vector<int> result;
-    std::vector<int> vaContained;
+    std::vector<VaContain> vaContained;
 
     //建立vaContained
-    std::string::iterator p1;
-    p1 = para.begin();
-    while (p1 != para.end())
+    int p1;
+    p1 = 0;
+    VaContain *va;
+    while (true)
     {
+        va = new VaContain;
+
         std::string temp;
-        temp = para.substr(p1 - para.begin(), 2);
-        vaContained.push_back(std::stoi(temp));
-        p1 += 2; 
+        temp = para.substr(p1, 2);
+        va->vaPos = (std::stoi(temp));
+        
+        if (p1 + 2 == para.size())
+        {
+            va->isPositive = 1;
+            vaContained.push_back(*va);
+            break;
+        }
+        else if (p1 + 3 == para.size())
+        {
+            va->isPositive = 0;
+            vaContained.push_back(*va);
+            break;
+        }
+        else
+        {
+            if (para[p1 + 2] == '\'')
+            {
+                va->isPositive = 0;
+                p1 += 3;
+            }
+            else
+            {
+                va->isPositive = 1;
+                p1 += 2;
+            }
+        }
+        vaContained.push_back(*va);
     }
-    std::sort(vaContained.begin(), vaContained.end());
+
+    std::sort(vaContained.begin(), vaContained.end(), VaContainComp);
 
     int leftVaNum;
     leftVaNum = variable.size() - vaContained.size();
@@ -458,8 +500,8 @@ std::vector<int> Item::stringToMinItems(std::string para)
         {
             std::list<int>::iterator p;
             p = min.begin();
-            std::advance(p, vaContained[j]);
-            min.insert(p, 1);
+            std::advance(p, vaContained[j].vaPos);
+            min.insert(p, vaContained[j].isPositive);
         }
 
         result.push_back(listToInt(min));
@@ -553,7 +595,6 @@ std::string Item::InfixToSuffix(std::string para)
 int Item::expr(const std::string &exprPara, const std::vector<std::string> &variablePara)
 {
     variable = variablePara;
-    std::sort(variable.begin(), variable.end());
 
     isUsed = false;
     minItem.clear();
@@ -574,6 +615,7 @@ int Item::expr(const std::string &exprPara, const std::vector<std::string> &vari
     //第二步：将表达式中的变量名替换为相应的二位十进制编码，以变量在变量名集合中的下标进行编码。
     std::string expressions = (std::string)exprPara;
     std::string::iterator p1, p2;
+    int pa, pb;
 
     //清除空格
     while (true)
@@ -585,46 +627,47 @@ int Item::expr(const std::string &exprPara, const std::vector<std::string> &vari
             break;
     }
 
-    p1 = expressions.begin();
-    p2 = expressions.begin();
+    pa = pb = 0;
     const int BEGIN = 0, VARIABLES = 1, OPERATORS = 2;
     int state = BEGIN;
 
-    while (p1 != expressions.end())
+    while (pa != expressions.size())
     {
         switch (state)
         {
         case BEGIN:
-            if (isOperator(*p1))
+            if (isOperator(expressions[pa]) || expressions[pa] == '\'')
                 state = OPERATORS;
-            else if (isVariable(*p1))
+            else if (isVariable(expressions[pa]))
                 state = VARIABLES;
             else
                 return -1;
             break;
         case VARIABLES:
-            p2++;
-            if (p2 == expressions.end() || !isVariable(*p2))
+            pb++;
+            if (pb == expressions.size() || !isVariable(expressions[pb]))
             {
-                if (p2 == expressions.end())
+                if (pb == expressions.size())
                     ;
-                else if (isOperator(*p2))
+                else if (isOperator(expressions[pb]) || expressions[pb] == '\'')
                     state = OPERATORS;
                 else
                     return -1;
                 std::string temp;
-                temp = variableEcoding(expressions.substr(p1 - expressions.begin(), p2 - p1));
-                expressions.replace(p1, p2, temp);
-                p1 += temp.size();
-                p2 = p1;
+                temp = variableEcoding(expressions.substr(pa, pb - pa));
+                expressions.replace(pa, pb - pa, temp);
+                pa += temp.size();
+                pb = pa;
             }
             break;
         case OPERATORS:
-            p1++;
-            p2++;
-            if (isVariable(*p1))
+            pa++;
+            pb++;
+            if (pa == expressions.size())       //当表达式最后一个为右花括号时
+                break;
+            if (isVariable(expressions[pa]))
                 state = VARIABLES;
-            else if (isOperator(*p1))
+            else if (isOperator(expressions[pa]) || expressions[pa] == '\'')
                 ;
             else
                 return -1;
@@ -638,40 +681,35 @@ int Item::expr(const std::string &exprPara, const std::vector<std::string> &vari
 
     //第三步：将表达式中的与项转换成Item并存放在vector中，并按照该项在vector中的下标进行编码，编码为三位十进制。
     std::vector<Item> itemTable;
+    pa = pb = 0;
 
     int index = 0;
-    p1 = expressions.begin();
-    p2 = p1;
     Item *items;
-    bool end;
-    end = false;
-    while (!end)
+
+    while (pa != expressions.size())
     {
-        while(isOperator(*p1))
-            p1++;
-        if (p1 == expressions.end())
+        while(isOperator(expressions[pa]))
+            pa++;
+        if (pa == expressions.size())
             break;
 
-        p2 = p1;
-        p2++;
+        pb = pa;
+        pb++;
 
-        while (p2 != expressions.end() && !isOperator(*p2))
-            p2++;
+        while (pb != expressions.size() && !isOperator(expressions[pb]))
+            pb++;
         
-        if (p2 == expressions.end())
-            end = true;
-
         std::string temp;
-        temp = expressions.substr(p1 - expressions.begin(), p2 - p1);
+        temp = expressions.substr(pa, pb - pa);
 
         items = new Item(variable);
         items->set_minItem(stringToMinItems(temp));
         itemTable.push_back(*items);
 
         temp = itemPosToString(index++);
-        expressions.replace(p1, p2, temp);
+        expressions.replace(pa, pb - pa, temp);
 
-        p1 += 3;
+        pa += 3;
     }
 
 

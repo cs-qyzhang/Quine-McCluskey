@@ -44,13 +44,13 @@ public:
     ~Item() = default;                              //默认析构函数
     Item & operator=(const Item &);                 //赋值运算符
     bool operator==(const Item &) const;            //等于运算符
-    Item operator+(const Item &);                 //或运算
-    Item operator*(const Item &);                 //与运算
-    Item operator!();
+    Item operator+(const Item &);                   //或运算
+    Item operator*(const Item &);                   //与运算
+    Item operator!();                               //非运算
     void clear();                                   //清空项
 
     bool get_isUsed() const;                        //返回isUsed的值
-    std::vector<int> & get_minItem() const;         //返回minItemContain的一个拷贝
+    std::vector<int> get_minItem() const;           //返回minItemContain的一个拷贝
     std::vector<std::string> & get_variable() const;//返回变量名称
 
     bool isMinItemContained(int minItem) const;     //返回项中是否包含有minItem这一最小项
@@ -70,10 +70,12 @@ public:
     
 };
 
-typedef struct VaNode
+struct VaContain
 {
-    std::string name;
-    int pos; 
-}*VaNodePtr;
+    int vaPos;
+    bool isPositive;
+};
+
+bool VaContainComp(VaContain a, VaContain b);
 
 #endif //QUINE_MCCLUSKEY_ITEM_H
