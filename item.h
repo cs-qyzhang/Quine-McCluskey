@@ -20,11 +20,12 @@ private:
     std::vector<std::string> variable;              //变量名称
     bool isUsed;                                    //在列表化简法里判断该项是否用过
     std::vector<int> minItem;                       //该项包含的最小项
+    std::vector<std::vector<int>> binaryCode;       //最小项的二进制码，0代表反变量，1代表原变量，-1代表二者皆有
 
-    int numOfPositiveVariables() const;             //计算并返回项中含有的原变量个数
-    int numOfNegativeVariables() const;             //计算并返回项中含有的反变量个数
+    int numOfPositiveVariables(std::vector<int>);   //计算并返回项中含有的原变量个数
+    int numOfNegativeVariables(std::vector<int>);   //计算并返回项中含有的反变量个数
 
-    int operatorPriority(char);                          //得到运算符的优先级
+    int operatorPriority(char);                     //得到运算符的优先级
     std::string InfixToSuffix(std::string);         //将前缀表达式字符串变为后缀表达式字符串
     int legalExpr(const std::string &);             //判断表达式是否合法
     bool isOperator(char);                          //判断字符是否属于运算符
@@ -34,6 +35,30 @@ private:
     std::string itemPosToString(int);               //将与项在vector的下标转换为三位十进制对应的字符串
     std::vector<int> stringToMinItems(std::string); //将与项对应字符串转换为该与项对应的最小项
     int listToInt(const std::list<int> &flag);      //将用链表表示的每个变量的包含情况转换为相应的最小项
+
+    void Step1();
+    void Step2();
+    void Step3(std::vector<int> &unNecessaryPos,
+               std::vector<int> &needMinItemPos,
+               std::vector<int> &necessaryPos,
+               std::vector<std::vector<int>> flag);
+    void Step4(std::vector<int> &unNecessaryPos,
+               std::vector<int> &needMinItemPos,
+               std::vector<int> &necessaryPos,
+               std::vector<std::vector<int>> flag);
+
+    bool canCombain(std::vector<int>,
+                    std::vector<int>);              //判断两个二进制码表示的最小项集能否合并
+    std::vector<int> combain(std::vector<int>,
+                             std::vector<int>);     //合并两个二进制码表示的最小项集合
+
+    bool contain(std::vector<int>, int);            //判断一个二进制码表示的项是否包含一个最小项
+    bool rowContain(std::vector<int>, int a, int b,
+            std::vector<std::vector<int>> flag);
+    bool rowEqual(std::vector<int>, int a, int b,
+            std::vector<std::vector<int>> flag);
+    bool coloumContain(std::vector<int>, int a, int b,
+            std::vector<std::vector<int>> flag);
 
 public:
     explicit Item();                                //默认构造函数，将isUsed,variableQuantity设置为0
@@ -65,17 +90,23 @@ public:
     int expr(const std::string &,
              const std::vector<std::string> &);     //根据逻辑表达式重新为项赋值
 
-    std::string toString() const;                   //列表化简法计算并返回该项的最简表达式
+    std::string toString();                   //列表化简法计算并返回该项的最简表达式
 
     
 };
 
+// ------------------------------
+// 结构名：VaContain
+// 说明： 该结构用于在将表达式转为最小项时保存
+//       一个变量在变量数组中的位置以及是
+//       以原变量出现还是反变量出现
+// ------------------------------
 struct VaContain
 {
-    int vaPos;
-    bool isPositive;
+    int vaPos;          //变量在variable中的位置
+    bool isPositive;    //变量是否为原变量
 };
 
-bool VaContainComp(VaContain a, VaContain b);
+bool VaContainComp(VaContain a, VaContain b);       //比较VaContain结构a和的vaPos是否小于b的vaPos
 
 #endif //QUINE_MCCLUSKEY_ITEM_H

@@ -20,7 +20,6 @@
 Item::Item() :
     isUsed(false)
 {
-
 }
 // ------------------------------
 // 函数名称：Item
@@ -94,6 +93,7 @@ void Item::clear()
 {
     variable.clear();
     minItem.clear();
+    binaryCode.clear();
     isUsed = false;
 }
 bool Item::get_isUsed() const
@@ -253,13 +253,31 @@ Item Item::operator!()
 
     return result;
 }
-int Item::numOfPositiveVariables() const
+int Item::numOfPositiveVariables(std::vector<int> para)
 {
-    //TODO:
+    int result;
+    result = 0;
+
+    for (auto &x : para)
+    {
+        if (x == 1)
+            result++;
+    }
+
+    return result;
 }
-int Item::numOfNegativeVariables() const
+int Item::numOfNegativeVariables(std::vector<int> para)
 {
-    //TODO:
+    int result;
+    result = 0;
+
+    for (auto &x : para)
+    {
+        if (x == 0)
+            result++;
+    }
+
+    return result;
 }
 // ------------------------------
 // 函数名称：isOperator
@@ -813,4 +831,364 @@ int Item::legalExpr(const std::string &para)
 
     //检查合法性第五步：括号能够正确匹配
     return 0;
+}
+// ------------------------------
+// 函数名称：toString
+// 函数功能：将Item转换为最简表达式
+// 函数参数：无
+// 函数返回：string
+// 函数说明：无
+// ------------------------------
+std::string Item::toString()
+{
+    std::vector<Item> min;
+    std::string result;
+    std::vector<int> necessaryPos, temp, unNecessaryPos, needMinItemPos;
+    std::vector<std::vector<int>> flag;
+    Step1();
+    Step2();
+
+    //初始化flag和unNecessaryPos
+    for (int i = 0; i < binaryCode.size(); i++)
+    {
+        temp.clear();
+        for (int j = 0; j < minItem.size(); j++)
+        {
+            if (contain(binaryCode[i], minItem[j]))
+                temp.push_back(1);
+            else
+                temp.push_back(0);
+        }
+        flag.push_back(temp);
+        unNecessaryPos.push_back(i);
+    }
+
+    //初始化needMinItemPos
+    for (int i = 0; i < minItem.size(); i++)
+        needMinItemPos.push_back(i);
+
+    Step3(unNecessaryPos, needMinItemPos, necessaryPos, flag);
+    Step4(unNecessaryPos, needMinItemPos, necessaryPos, flag);
+
+    //TODO:
+}
+bool Item::canCombain(std::vector<int> a, std::vector<int> b)
+{
+    int numOfDiff;
+    numOfDiff = 0;
+    for (int i = 0; i < a.size(); i++)
+    {
+        if (a[i] + b[i] == 1)
+        {
+            numOfDiff++;
+            if (numOfDiff > 1)
+                return false;
+        }
+        else if (a[i] == b[i])
+            continue;
+        else
+            return false;
+    }
+    return true;
+}
+std::vector<int> Item::combain(std::vector<int> a, std::vector<int> b)
+{
+    std::vector<int> result;
+    for (int i = 0; i < a.size(); i++)
+    {
+        if (a[i] + b[i] == 1)
+        {
+            result.push_back(-1);
+        }
+        else
+            result.push_back(a[i]);
+    }
+    return result;
+}
+bool Item::contain(std::vector<int> code, int min)
+{
+    std::vector<int> minCode;
+    for (int i = 0; i < code.size(); i++)
+    {
+        minCode.insert(minCode.begin(), min % 2);
+        min /= 2;
+    }
+    for (int i = 0; i < code.size(); i++)
+    {
+        if (code[i] == -1)
+            continue;
+        else if (code[i] == minCode[i])
+            continue;
+        else
+            return false;
+    }
+}
+bool Item::rowContain(std::vector<int> needMinItemPos, int a, int b, std::vector<std::vector<int>> flag)
+{
+    for (int i = 0; i < needMinItemPos.size(); i++)
+    {
+        if (flag[a][needMinItemPos[i]] == 1)
+            continue;
+        else
+        {
+            if (flag[b][needMinItemPos[i]] == 1)
+                return false;
+        }
+    }
+    return true;
+}
+bool Item::rowEqual(std::vector<int> needMinItemPos, int a, int b, std::vector<std::vector<int>> flag)
+{
+    for (int i = 0; i < needMinItemPos.size(); i++)
+    {
+        if (flag[a][needMinItemPos[i]] == flag[b][needMinItemPos[i]])
+            continue;
+        else
+            return false;
+    }
+    return true;
+}
+bool Item::coloumContain(std::vector<int> unNecessaryPos, int a, int b, std::vector<std::vector<int>> flag)
+{
+    for (int i = 0; i < unNecessaryPos.size(); i++)
+    {
+        if (flag[unNecessaryPos[i]][a] == 1)
+            continue;
+        else
+        {
+            if (flag[unNecessaryPos[i]][b] == 1)
+                return false;
+        }
+    }
+    return true;
+}
+void Item::Step1()
+{
+    std::sort(minItem.begin(), minItem.end());
+
+    binaryCode.clear();
+
+    for (auto x : minItem)
+    {
+        std::vector<int> code;
+        for (int i = 0; i < variable.size(); i++)
+        {
+            code.insert(code.begin(), x % 2);
+            x /= 2;
+        }
+        binaryCode.push_back(code);
+    }
+}
+void Item::Step2()
+{
+    bool isEnd = false;
+    std::vector<std::vector<int>> temp1, temp2;
+    std::vector<std::vector<int>> result;           //最终结果
+    std::vector<std::vector<int>> pos;              //各组在temp1中的位序
+    std::vector<int> temp;
+    std::vector<bool> flag;                         //表示temp1中对应的项是否用到
+
+    temp1 = binaryCode;
+
+    for (int i = 0; i < variable.size(); i++)
+    {
+        pos.clear();
+        flag.clear();
+        temp2.clear();
+
+        //初始化pos和flag
+        for (int j = 0; j <= variable.size() - i; j++)
+            pos.push_back(temp);
+        for (int j = 0; j < temp1.size(); j++)
+        {
+            pos[numOfPositiveVariables(temp1[j])].push_back(j);
+            flag.push_back(false);
+        }
+
+        //开始合并
+        for (int j = 0; j < pos.size() - 1; j++)
+        {
+            for (int k = 0; k < pos[j].size(); k++)
+            {
+                for (int z = 0; z < pos[j + 1].size(); z++)
+                {
+                    if (canCombain(temp1[pos[j][k]], temp1[pos[j + 1][z]]))
+                    {
+                        temp2.push_back(combain(temp1[pos[j][k]], temp1[pos[j + 1][z]]));
+                        flag[pos[j][k]] = true;
+                        flag[pos[j + 1][z]] = true;
+                    }
+                }
+            }
+        }
+
+        //去掉temp2中重复的
+        for (int j = 0; j < temp2.size(); j++)
+        {
+            for (int k = j + 1; k < temp2.size();k++)
+            {
+                if (temp2[k] == temp2[j])
+                {
+                    temp2.erase(temp2.begin() + k);
+                    k--;
+                }
+            }
+        }
+
+        //将本轮合并中没有用到的项放入result中
+        for (int j = 0; j < temp1.size(); j++)
+        {
+            if (!flag[j])
+                result.push_back(temp1[j]);
+        }
+        temp1 = temp2;
+    }
+    binaryCode = result;
+    for (auto x : temp1)
+        binaryCode.push_back(x);
+}
+void Item::Step3(std::vector<int> &unNecessaryPos, std::vector<int> &needMinItemPos,
+                 std::vector<int> &necessaryPos, std::vector<std::vector<int>> flag)
+{
+    std::vector<int> mark;
+    int pos;
+    for (int i = 0; i < needMinItemPos.size(); i++)
+    {
+        int lastPos = -1;
+        bool had = false;
+        for (int j = 0; j < unNecessaryPos.size(); j++)
+        {
+            if (flag[unNecessaryPos[j]][needMinItemPos[i]])
+            {
+                if (!had)
+                {
+                    lastPos = unNecessaryPos[j];
+                    pos = j;
+                    had = true;
+                }
+                else
+                {
+                    had = false;
+                    break;
+                }
+            }
+        }
+        if (had)
+        {
+            std::vector<int>::iterator p;
+            p = std::find(necessaryPos.begin(), necessaryPos.end(), lastPos);
+            if (p != necessaryPos.end())
+                continue;
+            necessaryPos.push_back(lastPos);
+            mark.push_back(pos);
+        }
+    }
+
+    //改变unNecessaryPos
+    for (int i = 0; i < mark.size(); i++)
+        unNecessaryPos.erase(unNecessaryPos.begin() + mark[i] - i);
+    
+    //改变needMinItemPos
+    for (int i = 0; i < needMinItemPos.size(); i++)
+    {
+        for (int j = 0; j < necessaryPos.size(); j++)
+        {
+            if (flag[necessaryPos[j]][needMinItemPos[i]])
+            {
+                needMinItemPos.erase(needMinItemPos.begin() + i);
+                i--;
+                break;
+            }
+        }
+    }
+}
+void Item::Step4(std::vector<int> &unNecessaryPos, std::vector<int> &needMinItemPos,
+                 std::vector<int> &necessaryPos, std::vector<std::vector<int>> flag)
+{
+    
+    //递归终止条件
+    if (unNecessaryPos.empty())
+        return;
+    if (needMinItemPos.empty())
+        return;
+    
+    //消去等价的项
+    for (int i = 0; i < unNecessaryPos.size() - 1; i++)
+    {
+        for (int j = i + 1; j < unNecessaryPos.size(); j++)
+        {
+            //如果i行与j行等价
+            if (rowEqual(needMinItemPos, unNecessaryPos[i], unNecessaryPos[j], flag))
+            {
+                unNecessaryPos.erase(unNecessaryPos.begin() + j);
+                j--;
+            }
+        }
+    }
+
+    //初始化markRow和markColoum
+    std::vector<int> markRow, markColoum;
+    for (int i = 0; i < unNecessaryPos.size(); i++)
+        markRow.push_back(false);
+    for (int i = 0; i < needMinItemPos.size(); i++)
+        markColoum.push_back(false);
+
+    //行消去标记
+    for (int i = 0; i < unNecessaryPos.size() - 1; i++)
+    {
+        for (int j = i + 1; j < unNecessaryPos.size(); j++)
+        {
+            //如果i行包含j行
+            if (rowContain(needMinItemPos, unNecessaryPos[i], unNecessaryPos[j], flag))
+                markRow[j] = true;
+            else if (rowContain(needMinItemPos, unNecessaryPos[j], unNecessaryPos[i], flag))
+                markRow[i] = true;
+            else
+                continue;
+        }
+    }
+
+    //列消去标记
+    for (int i = 0; i < needMinItemPos.size() - 1; i++)
+    {
+        for (int j = i + 1; j < needMinItemPos.size(); j++)
+        {
+            //如果i列包含j列
+            if (coloumContain(unNecessaryPos, needMinItemPos[i], needMinItemPos[j], flag))
+                markColoum[i] = true;
+            else if (coloumContain(unNecessaryPos, needMinItemPos[j], needMinItemPos[i], flag))
+                markColoum[j] = true;
+            else
+                continue;
+        }
+    }
+
+    //行消去
+    int i = 0;
+    while (i < unNecessaryPos.size())
+    {
+        if (markRow[i] == true)
+        {
+            unNecessaryPos.erase(unNecessaryPos.begin() + i);
+            markRow.erase(markRow.begin() + i);
+        }
+        else
+            i++;
+    }
+
+    //列消去
+    i = 0;
+    while (i < needMinItemPos.size())
+    {
+        if (markColoum[i] == true)
+        {
+            needMinItemPos.erase(needMinItemPos.begin() + i);
+            markColoum.erase(markColoum.begin() + i);
+        }
+        else
+            i++;
+    }
+
+    Step3(unNecessaryPos, needMinItemPos, necessaryPos, flag);
+    Step4(unNecessaryPos, needMinItemPos, necessaryPos, flag);
 }

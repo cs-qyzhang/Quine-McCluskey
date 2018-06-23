@@ -102,5 +102,36 @@ void test(void)
     variable.push_back("B");
     variable.push_back("Qcc");
     int result;
+    string expressions;
     result = a.expr("AQcc'B'+(((A'B^Qcc'A)))", variable);
+
+    a.clear();
+    variable.clear();
+    variable.push_back("A");
+    variable.push_back("B");
+    variable.push_back("C");
+    variable.push_back("D");
+    a.set_variable(variable);
+    a.push_back_minItem(0);
+    a.push_back_minItem(5);
+    a.push_back_minItem(7);
+    a.push_back_minItem(8);
+    a.push_back_minItem(9);
+    a.push_back_minItem(10);
+    a.push_back_minItem(11);
+    a.push_back_minItem(14);
+    a.push_back_minItem(15);
+
+    a.clear();
+    a.set_variable(variable);
+    a.push_back_minItem(0);
+    a.push_back_minItem(3);
+    a.push_back_minItem(4);
+    a.push_back_minItem(5);
+    a.push_back_minItem(6);
+    a.push_back_minItem(7);
+    a.push_back_minItem(8);
+    a.push_back_minItem(10);
+    a.push_back_minItem(11);
+    expressions = a.toString();
 }
