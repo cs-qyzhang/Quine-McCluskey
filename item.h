@@ -59,6 +59,7 @@ private:
             std::vector<std::vector<int>> flag);
     bool coloumContain(std::vector<int>, int a, int b,
             std::vector<std::vector<int>> flag);
+    std::string itemToString(std::vector<int>);
 
 public:
     explicit Item();                                //默认构造函数，将isUsed,variableQuantity设置为0
@@ -76,7 +77,7 @@ public:
 
     bool get_isUsed() const;                        //返回isUsed的值
     std::vector<int> get_minItem() const;           //返回minItemContain的一个拷贝
-    std::vector<std::string> & get_variable() const;//返回变量名称
+    std::vector<std::string> get_variable() const;  //返回变量名称
 
     bool isMinItemContained(int minItem) const;     //返回项中是否包含有minItem这一最小项
 

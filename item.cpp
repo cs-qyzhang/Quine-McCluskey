@@ -106,7 +106,7 @@ std::vector<int> Item::get_minItem() const
     result = minItem;
     return result;
 }
-std::vector<std::string> & Item::get_variable() const
+std::vector<std::string> Item::get_variable() const
 {
     std::vector<std::string> result;
     result = variable;
@@ -617,6 +617,15 @@ int Item::expr(const std::string &exprPara, const std::vector<std::string> &vari
     isUsed = false;
     minItem.clear();
 
+    if (exprPara == "0")
+        return 0;
+    if (exprPara == "1")
+    {
+        for (int i = 0; i < exp2(variable.size()); i++)
+            minItem.push_back(i);
+
+        return 0;
+    }
     //第一步：扫描输入是否合法。
     //       合法性包括：
     //       1.运算符操作数都为变量名或表达式。
@@ -870,7 +879,8 @@ std::string Item::toString()
     Step3(unNecessaryPos, needMinItemPos, necessaryPos, flag);
     Step4(unNecessaryPos, needMinItemPos, necessaryPos, flag);
 
-    //TODO:
+    result = itemToString(necessaryPos);
+    return result;
 }
 bool Item::canCombain(std::vector<int> a, std::vector<int> b)
 {
@@ -1191,4 +1201,34 @@ void Item::Step4(std::vector<int> &unNecessaryPos, std::vector<int> &needMinItem
 
     Step3(unNecessaryPos, needMinItemPos, necessaryPos, flag);
     Step4(unNecessaryPos, needMinItemPos, necessaryPos, flag);
+}
+std::string Item::itemToString(std::vector<int> necessaryPos)
+{
+    std::string result;
+    if (necessaryPos.empty())
+        return "0";
+    else
+    {
+        
+        for (int i = 0; i < necessaryPos.size(); i++)
+        {
+            for (int j = 0; j < binaryCode[necessaryPos[i]].size(); j++)
+            {
+                if (binaryCode[necessaryPos[i]][j] == 0)
+                {
+                    result += variable[j];
+                    result += '\'';
+                }
+                else if (binaryCode[necessaryPos[i]][j] == 1)
+                    result += variable[j];
+                else
+                    continue;
+            }
+            if (result.empty())
+                return "1";
+            result += '+';
+        }
+        result.pop_back();
+    }
+    return result;
 }

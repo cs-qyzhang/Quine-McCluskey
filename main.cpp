@@ -19,6 +19,9 @@ int main(void)
     vector<string> variableTemp;
     string stringTemp;
     Item item;
+    char yesOrNo;
+    char input[300];
+    int intTemp;
 
     test();
 
@@ -46,6 +49,11 @@ int main(void)
             item.set_variable(variableTemp);
             break;
         case 2:
+            if (item.get_variable().empty())
+            {
+                cout << "请先输入变量名称！" << endl;
+                break;
+            }
             cout << "表达式中允许的运算符有：或(+), 与(*), 非(!), 异或(^), 同或(@)；" << endl;
             cout << "其中不同变量之间相与可省略\'*\'号；" << endl;
             cout << "在变量名后输入单引号(\')代表该变量以反变量的形式出现。" << endl;
@@ -56,6 +64,53 @@ int main(void)
             for (int i = 0; i < minItemTemp.size(); i++)
                 cout << minItemTemp[i] << ' ';
             cout << endl;
+            break;
+        case 3:
+            if (item.get_variable().empty())
+            {
+                cout << "请先输入变量名称！" << endl;
+                break;
+            }
+            cout << "是否将第二步得到的最小项化简？(y/n)";
+            cin >> yesOrNo;
+            if (yesOrNo != 'y' && yesOrNo != 'Y')
+            {
+                cout << "请输入最小项，以空格分隔：";
+                minItemTemp.clear();
+                while (!cin.eof())
+                {
+                    cin >> intTemp;
+                    if (cin.fail())
+                    {
+                        cin.clear();
+                        cin.get();
+                        cout << "错误的输入格式！请输入一个数字！" << endl;
+                        minItemTemp.clear();
+                        break;
+                    }
+                    minItemTemp.push_back(intTemp);
+                }
+                item.set_minItem(minItemTemp);
+            }
+            stringTemp = item.toString();
+            cout << "化简后的表达式为：" << endl;
+            cout << stringTemp << endl;
+            break;
+        case 4:
+            if (item.get_variable().empty())
+            {
+                cout << "请先输入变量名称！" << endl;
+                break;
+            }
+            cout << "表达式中允许的运算符有：或(+), 与(*), 非(!), 异或(^), 同或(@)；" << endl;
+            cout << "其中不同变量之间相与可省略\'*\'号；" << endl;
+            cout << "在变量名后输入单引号(\')代表该变量以反变量的形式出现。" << endl;
+            cout << "请输入表达式：";
+            cin >> stringTemp;
+            item.expr(stringTemp, variableTemp);
+            stringTemp = item.toString();
+            cout << "化简后的表达式为：" << endl;
+            cout << stringTemp << endl;
             break;
         default:
             cout << "错误的输入！请检查输入！" << endl;
@@ -81,6 +136,8 @@ int ShowMenu()
     cout << " 0.退出程序" << endl;
     cout << " 1.按顺序输入变量" << endl;
     cout << " 2.将表达式转换为最小项" << endl;
+    cout << " 3.将最小项化简表达式" << endl;
+    cout << " 4.化简表达式" << endl;
     cout << "-----------------------------" << endl;
     cout << "请输入选项以继续：";
     cin  >> select;
