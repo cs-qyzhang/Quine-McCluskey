@@ -17,8 +17,7 @@
 // 函数返回：无
 // 函数说明：无
 // ------------------------------
-Item::Item() :
-    isUsed(false)
+Item::Item()
 {
 }
 // ------------------------------
@@ -29,7 +28,7 @@ Item::Item() :
 // 函数说明：无
 // ------------------------------
 Item::Item(const std::vector<std::string> &variablePara) :
-    isUsed(false), variable(variablePara)
+    variable(variablePara)
 {
 }
 // ------------------------------
@@ -42,8 +41,9 @@ Item::Item(const std::vector<std::string> &variablePara) :
 // ------------------------------
 Item::Item(const std::vector<std::string> &variablePara,
            const std::vector<int> &para) :
-    isUsed(false), variable(variablePara), minItem(para)
+    variable(variablePara), minItem(para)
 {
+    std::sort(minItem.begin(), minItem.end());
 }
 // ------------------------------
 // 函数名称：operator=
@@ -54,8 +54,8 @@ Item::Item(const std::vector<std::string> &variablePara,
 // ------------------------------
 Item & Item::operator=(const Item &para)
 {
-    isUsed = para.isUsed;
     minItem = para.minItem;
+    std::sort(minItem.begin(), minItem.end());
     variable = para.variable;
     return *this;
 }
@@ -94,11 +94,6 @@ void Item::clear()
     variable.clear();
     minItem.clear();
     binaryCode.clear();
-    isUsed = false;
-}
-bool Item::get_isUsed() const
-{
-    return isUsed;
 }
 std::vector<int> Item::get_minItem() const
 {
@@ -121,13 +116,10 @@ bool Item::isMinItemContained(int para) const
     else
         return true;
 }
-void Item::set_isUsed(bool para)
-{
-    isUsed = para;
-}
 void Item::set_minItem(const std::vector<int> &para)
 {
     minItem = para;
+    std::sort(minItem.begin(), minItem.end());
 }
 void Item::set_variable(const std::vector<std::string> &para)
 {
@@ -140,6 +132,7 @@ void Item::push_back_minItem(int para)
         return;
 
     minItem.push_back(para);
+    std::sort(minItem.begin(), minItem.end());
 }
 void Item::removeMinItem(int para)
 {
@@ -525,6 +518,7 @@ std::vector<int> Item::stringToMinItems(std::string para)
         result.push_back(listToInt(min));
         min.clear();
     }
+    std::sort(result.begin(), result.end());
     return result;
 }
 // ------------------------------
@@ -614,7 +608,6 @@ int Item::expr(const std::string &exprPara, const std::vector<std::string> &vari
 {
     variable = variablePara;
 
-    isUsed = false;
     minItem.clear();
 
     if (exprPara == "0")

@@ -18,7 +18,6 @@ class Item
 {
 private:
     std::vector<std::string> variable;              //变量名称
-    bool isUsed;                                    //在列表化简法里判断该项是否用过
     std::vector<int> minItem;                       //该项包含的最小项
     std::vector<std::vector<int>> binaryCode;       //最小项的二进制码，0代表反变量，1代表原变量，-1代表二者皆有
 
@@ -75,13 +74,11 @@ public:
     Item operator!();                               //非运算
     void clear();                                   //清空项
 
-    bool get_isUsed() const;                        //返回isUsed的值
     std::vector<int> get_minItem() const;           //返回minItemContain的一个拷贝
     std::vector<std::string> get_variable() const;  //返回变量名称
 
     bool isMinItemContained(int minItem) const;     //返回项中是否包含有minItem这一最小项
 
-    void set_isUsed(bool);                          //设置isUsed成员
     void set_minItem(const std::vector<int> &);     //设置minItemContain成员
     void set_variable(const 
                       std::vector<std::string> &);  //设置变量名称

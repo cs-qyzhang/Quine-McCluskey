@@ -9,7 +9,6 @@
 using namespace std;
 
 int ShowMenu(void);
-void test(void);
 
 int main(void)
 {
@@ -22,8 +21,7 @@ int main(void)
     char yesOrNo;
     char input[300];
     int intTemp;
-
-    test();
+    bool hadToMinItems = false;
 
     while (true)
     {
@@ -36,8 +34,18 @@ int main(void)
             return 0;
             break;
         case 1:
+            if (hadToMinItems)
+                hadToMinItems = false;
             cout << "请先输入变量个数：";
             cin >> variableNum;
+            if (cin.fail())
+            {
+                cin.clear();
+                cin.get();
+                cout << "错误的输入格式！请输入一个数字！" << endl;
+                minItemTemp.clear();
+                break;
+            }
             cout << "请按照变量顺序依次输入变量名，以空格分隔。" << endl;
             cout << "变量名可由下划线(_)，大写字母(A~Z)，小写字母(a~z)，数字(0~9)组成。" << endl;
             variableTemp.clear();
@@ -49,6 +57,8 @@ int main(void)
             item.set_variable(variableTemp);
             break;
         case 2:
+            if (hadToMinItems)
+                hadToMinItems = false;
             if (item.get_variable().empty())
             {
                 cout << "请先输入变量名称！" << endl;
@@ -64,6 +74,7 @@ int main(void)
             for (int i = 0; i < minItemTemp.size(); i++)
                 cout << minItemTemp[i] << ' ';
             cout << endl;
+            hadToMinItems = true;
             break;
         case 3:
             if (item.get_variable().empty())
@@ -71,15 +82,20 @@ int main(void)
                 cout << "请先输入变量名称！" << endl;
                 break;
             }
-            cout << "是否将第二步得到的最小项化简？(y/n)";
-            cin >> yesOrNo;
+            if (hadToMinItems)
+            {
+                hadToMinItems = false;
+                cout << "是否将第二步得到的最小项化简？(y/n)";
+                cin >> yesOrNo;
+            }
+            else
+                yesOrNo = 'n';
             if (yesOrNo != 'y' && yesOrNo != 'Y')
             {
-                cout << "请输入最小项，以空格分隔：";
+                cout << "请输入最小项，以空格分隔，-1结束输入：";
                 minItemTemp.clear();
-                while (!cin.eof())
+                while (cin >> intTemp)
                 {
-                    cin >> intTemp;
                     if (cin.fail())
                     {
                         cin.clear();
@@ -88,6 +104,8 @@ int main(void)
                         minItemTemp.clear();
                         break;
                     }
+                    if (intTemp == -1)
+                        break;
                     minItemTemp.push_back(intTemp);
                 }
                 item.set_minItem(minItemTemp);
@@ -97,6 +115,8 @@ int main(void)
             cout << stringTemp << endl;
             break;
         case 4:
+            if (hadToMinItems)
+                hadToMinItems = false;
             if (item.get_variable().empty())
             {
                 cout << "请先输入变量名称！" << endl;
@@ -113,6 +133,7 @@ int main(void)
             cout << stringTemp << endl;
             break;
         default:
+            hadToMinItems = false;
             cout << "错误的输入！请检查输入！" << endl;
             break;
         }
@@ -149,46 +170,4 @@ int ShowMenu()
         return -1;
     }
     return select;
-}
-
-void test(void)
-{
-    Item a;
-    vector<string> variable;
-    variable.push_back("A");
-    variable.push_back("B");
-    variable.push_back("Qcc");
-    int result;
-    string expressions;
-    result = a.expr("AQcc'B'+(((A'B^Qcc'A)))", variable);
-
-    a.clear();
-    variable.clear();
-    variable.push_back("A");
-    variable.push_back("B");
-    variable.push_back("C");
-    variable.push_back("D");
-    a.set_variable(variable);
-    a.push_back_minItem(0);
-    a.push_back_minItem(5);
-    a.push_back_minItem(7);
-    a.push_back_minItem(8);
-    a.push_back_minItem(9);
-    a.push_back_minItem(10);
-    a.push_back_minItem(11);
-    a.push_back_minItem(14);
-    a.push_back_minItem(15);
-
-    a.clear();
-    a.set_variable(variable);
-    a.push_back_minItem(0);
-    a.push_back_minItem(3);
-    a.push_back_minItem(4);
-    a.push_back_minItem(5);
-    a.push_back_minItem(6);
-    a.push_back_minItem(7);
-    a.push_back_minItem(8);
-    a.push_back_minItem(10);
-    a.push_back_minItem(11);
-    expressions = a.toString();
 }
